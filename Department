@@ -1,0 +1,24 @@
+package department;
+
+public class Department {
+
+    String departmentName;
+    String departmentDescription;
+
+    public Department(String departmentName, String departmentDescription){
+        this.departmentName = departmentName;
+        this.departmentDescription = departmentDescription;
+    }
+    public String getDepartmentName(){
+        return departmentName;
+    }
+    public String getDepartmentDescription(){
+        return departmentDescription;
+    }
+    public void setDepartmentName(String departmentName){
+        this.departmentName = departmentName;
+    }
+    public void setDepartmentDescription(String departmentDescription){
+        this.departmentDescription = departmentDescription;
+    }
+}
