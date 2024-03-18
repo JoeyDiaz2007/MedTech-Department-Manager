@@ -1,0 +1,19 @@
+package main;
+
+import javax.swing.*;
+
+public class Driver {
+    public static void main(String[] args){
+        JFrame frame = new JFrame("MedTech Department Manager");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
+
+        MainPanel panel = new MainPanel();
+        frame.getContentPane().add(panel);
+
+        frame.pack();
+
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+}
