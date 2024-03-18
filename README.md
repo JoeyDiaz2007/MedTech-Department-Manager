@@ -20,23 +20,37 @@ Configuration Panel: Offers options to add new departments or devices to the sys
 Features
 
 Dynamic Panel Switching: Utilizes panel-based navigation to switch between different functionalities seamlessly.
+
 Real-time Device Status: Provides real-time insights into the status of devices within departments.
+
 Configurability: Offers the flexibility to add new departments or devices to the system dynamically.
+
 Intuitive Interface: Designed with a user-friendly interface to streamline administrative tasks.
+
 Getting Started
+
 To run the application locally, follow these steps:
 
 Clone the repository to your local machine.
+
 Ensure you have Java installed on your system.
+
 Compile and run the MainPanel.java file.
+
 Usage
+
 Once the application is running, you can:
 
 Navigate through different panels using the provided buttons.
+
 Add new departments or devices through the configuration panel.
+
 View the status of existing devices within departments.
+
 Contributions
+
 Contributions to this project are welcome! If you have any ideas for improvements or feature requests, feel free to open an issue or submit a pull request.
 
 License
+
 This project is licensed under the MIT License.
