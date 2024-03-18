@@ -1,0 +1,44 @@
+package device;
+
+public abstract class Device {
+    String id;
+    String condition;
+    String department;
+    int complexity;
+
+    public Device(String id, String condition, String department, int complexity){
+        this.id = id;
+        this.condition = condition;
+        this.department = department;
+        this.complexity = complexity;
+    }
+    public String getId(){
+        return id;
+    }
+    public String getCondition(){
+        return condition;
+    }
+    public String getDepartment(){
+        return department;
+    }
+    public int getComplexity(){
+        return complexity;
+    }
+    public void setId(String id){
+        this.id = id;
+    }
+    public void setCondition(String condition){
+        this.condition = condition;
+    }
+    public void setDepartment(String department){
+        this.department = department;
+    }
+    public void setComplexity(int complexity){
+        this.complexity = complexity;
+    }
+
+    @Override
+    public String toString(){
+        return "ID: " + id + " | Condition: " + condition + " | Department: " + department;
+    }
+}
