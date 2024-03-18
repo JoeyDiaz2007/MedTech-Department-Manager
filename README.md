@@ -1,5 +1,6 @@
 
 MedTech Department Manager
+
 Welcome to the MedTech Department Manager GitHub repository! This repository contains the source code for a Java Swing application designed to manage IT departments and their associated devices effectively. The application provides a user-friendly interface to oversee and update the status of technological assets across various departments.
 
 Overview
