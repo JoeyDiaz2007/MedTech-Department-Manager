@@ -1,0 +1,8 @@
+package device;
+
+public class Mouse extends Device {
+
+    public Mouse(String id, String condition, String department, int complexity) {
+        super(id, condition, department, complexity);
+    }
+}
