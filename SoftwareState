@@ -1,0 +1,5 @@
+package main;
+
+public enum SoftwareState {
+    START, HOME, DEPARTMENTS, DEVICES, CONFIGURATION
+}
