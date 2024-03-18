@@ -1,0 +1,8 @@
+package device;
+
+public class Monitor extends Device {
+
+    public Monitor(String id, String condition, String department, int complexity) {
+        super(id, condition, department, complexity);
+    }
+}
