@@ -1,0 +1,572 @@
+package main;
+
+import department.Department;
+import device.*;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Comparator;
+
+public class MainPanel extends JPanel {
+
+    private JPanel startPanel, homePanel, departmentsPanel, devicesPanel, configurationPanel;
+    private SoftwareState currentState = SoftwareState.START;
+
+    private ArrayList<Department> departments;
+
+    private ArrayList<Computer> computers;
+    private ArrayList<Keyboard> keyboards;
+    private ArrayList<Monitor> monitors;
+    private ArrayList<Mouse> mouses;
+
+    final Font LARGEFONT = new Font("Times New Roman", Font.PLAIN, 90);
+    final Font MEDIUMFONT = new Font("Times New Roman", Font.PLAIN, 60);
+    final Font SMALLFONT = new Font("Times New Roman", Font.PLAIN, 40);
+    final Font EXTRASMALLFONT = new Font("Times New Roman", Font.PLAIN, 25);
+
+    StateListener stateListener = new StateListener();
+    AddInformationListener addInformationListener = new AddInformationListener();
+    ExitListener exitListener = new ExitListener();
+
+    public MainPanel() {
+        this.setPreferredSize(new Dimension(1580, 880));
+
+        initializeDefaultData();
+
+        createStartPanel();
+        createHomePanel();
+        createDepartmentPanel();
+        createDevicesPanel();
+        createConfigurationPanel();
+
+        startSoftware();
+    }
+
+    public void startSoftware() {
+        switch (currentState) {
+            case START:
+                removeAll();
+                add(startPanel);
+                revalidate();
+                repaint();
+                break;
+            case HOME:
+                removeAll();
+                add(homePanel);
+                revalidate();
+                repaint();
+                break;
+            case DEPARTMENTS:
+                removeAll();
+                add(departmentsPanel);
+                revalidate();
+                repaint();
+                break;
+            case DEVICES:
+                removeAll();
+                add(devicesPanel);
+                revalidate();
+                repaint();
+                break;
+            case CONFIGURATION:
+                removeAll();
+                add(configurationPanel);
+                revalidate();
+                repaint();
+                break;
+        }
+    }
+
+    public void initializeDefaultData() {
+        departments = initializeDefaultDepartments();
+        computers = initializeDefaultComputers();
+        keyboards = initializeDefaultKeyboards();
+        monitors = initializeDefaultMonitors();
+        mouses = initializeDefaultMouses();
+    }
+
+    public void createStartPanel() {
+        startPanel = new JPanel();
+        startPanel.setLayout(new BorderLayout());
+
+        JPanel titlePanel = new JPanel();
+        titlePanel.setPreferredSize(new Dimension(1580, 500));
+
+        titlePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 150, 150));
+        JLabel titleLabel = new JLabel("MedTech Department Manager");
+
+        titleLabel.setFont(LARGEFONT);
+        titlePanel.add(titleLabel);
+
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
+
+        JButton startButton = createJButton("START", MEDIUMFONT, 350, 100);
+        startButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        startButton.addActionListener(stateListener);
+
+        JButton exitButton = createJButton("EXIT", MEDIUMFONT, 350, 100);
+        exitButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        exitButton.addActionListener(exitListener);
+
+        buttonPanel.add(startButton);
+        buttonPanel.add(exitButton);
+
+        startPanel.add(titlePanel, BorderLayout.CENTER);
+        startPanel.add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    public void createHomePanel() {
+        homePanel = new JPanel();
+        homePanel.setLayout(new BorderLayout());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(1, 3));
+        buttonPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        JButton departmentButton = createJButton("DEPARTMENTS", SMALLFONT, 75, 50);
+        departmentButton.addActionListener(stateListener);
+        JButton deviceButton = createJButton("DEVICES", SMALLFONT, 75, 50);
+        deviceButton.addActionListener(stateListener);
+        JButton configurationButton = createJButton("CONFIGURE", SMALLFONT, 75, 50);
+        configurationButton.addActionListener(stateListener);
+
+        buttonPanel.add(departmentButton);
+        buttonPanel.add(deviceButton);
+        buttonPanel.add(configurationButton);
+
+
+        JPanel homeDescriptionPanel = new JPanel();
+        homeDescriptionPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        JEditorPane homeDescription = new JEditorPane("text/html", "");
+        homeDescription.setEditable(false);
+        homeDescription.setOpaque(false);
+        homeDescription.setPreferredSize(new Dimension(1000, 780));
+        homeDescription.setFont(EXTRASMALLFONT);
+        // Set the content of the JEditorPane with HTML formatted text
+        homeDescription.setText("<html><body style='font-size: 20pt;'>" +
+                "<p>This Java Swing application serves as a reliable ally for IT departments, offering a user-friendly approach to oversee and update the status of technological assets across various departments. Designed with IT administrators in mind, this tool streamlines the process of monitoring equipment conditions, ensuring smooth operations, and facilitating timely maintenance interventions.</p>" +
+                "<p>With its intuitive interface, the application provides comprehensive insights into the health and functionality of critical devices such as computers, keyboards, monitors, and mice deployed throughout different departments. Administrators can swiftly assess device status, identify any issues, and take appropriate actions to address them promptly. Additionally, the application empowers administrators to update device information, record maintenance activities, and manage departmental configurations with ease, promoting proactive management practices and optimizing resource utilization.</p>" +
+                "<p>Configurability is key, allowing IT departments to tailor the system to their specific organizational requirements. By providing real-time visibility into the technological landscape of the organization, the application enhances operational efficiency, minimizes downtime, and contributes to the overall reliability and performance of IT infrastructure. This code showcases the developer's proficiency in building practical software solutions aimed at enhancing administrative processes and supporting efficient IT management practices.</p>" +
+                "</body></html>");
+
+        homeDescriptionPanel.add(homeDescription);
+
+
+        JPanel deviceStatusPanel = new JPanel();
+        deviceStatusPanel.setPreferredSize(new Dimension(580, 880));
+        deviceStatusPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        ArrayList<Device> devices = new ArrayList<>();
+        devices.addAll(computers);
+        devices.addAll(keyboards);
+        devices.addAll(monitors);
+        devices.addAll(mouses);
+        devices.removeIf(device -> device.getComplexity() == 0);
+        devices.sort(Comparator.comparingInt(Device::getComplexity).reversed());
+
+        for (int i = 0; i < devices.size(); i++) {
+            JLabel deviceLabel = new JLabel(devices.get(i).toString());
+            deviceStatusPanel.add(deviceLabel);
+        }
+
+        homePanel.add(buttonPanel, BorderLayout.NORTH);
+        homePanel.add(homeDescriptionPanel, BorderLayout.CENTER);
+        homePanel.add(deviceStatusPanel, BorderLayout.WEST);
+    }
+
+    public void createDepartmentPanel() {
+        departmentsPanel = new JPanel();
+        departmentsPanel.setLayout(new BorderLayout());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(1, 3));
+        buttonPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        JButton homeButton = createJButton("HOME", SMALLFONT, 75, 50);
+        homeButton.addActionListener(stateListener);
+        JButton devicesButton = createJButton("DEVICES", SMALLFONT, 75, 50);
+        devicesButton.addActionListener(stateListener);
+        JButton configureButton = createJButton("CONFIGURE", SMALLFONT, 75, 50);
+        configureButton.addActionListener(stateListener);
+
+        buttonPanel.add(homeButton);
+        buttonPanel.add(devicesButton);
+        buttonPanel.add(configureButton);
+
+
+        String[][] departmentData = new String[departments.size()][];
+        for (int i = 0; i < departments.size(); i++) {
+            Department department = departments.get(i);
+            departmentData[i] = new String[]{department.getDepartmentName(), department.getDepartmentDescription()};
+        }
+        String[] columnName = {"Department Name", "Department Description"};
+        DefaultTableModel model = new DefaultTableModel(departmentData, columnName);
+        JTable table = new JTable(model);
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setPreferredSize(new Dimension(1580, 880));
+        scrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        departmentsPanel.add(scrollPane, BorderLayout.CENTER);
+        departmentsPanel.add(buttonPanel, BorderLayout.NORTH);
+    }
+
+    public void createDevicesPanel() {
+
+        // Device Panel Will have three main Panels. The West, which will be the device status Panel.
+        // The North which will be the 3 buttons to switch between the panels.
+        //the center, which will contain the documented devices. This will have a gridlayout with 2 rows 2 columns
+
+        devicesPanel = new JPanel();
+        devicesPanel.setLayout(new BorderLayout());
+
+        // Creating Buttons for separate screen access.
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(1, 3));
+        buttonPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        JButton homeButton = createJButton("HOME", SMALLFONT, 75, 50);
+        homeButton.addActionListener(stateListener);
+        JButton departmentButton = createJButton("DEPARTMENTS", SMALLFONT, 75, 50);
+        departmentButton.addActionListener(stateListener);
+        JButton configureButton = createJButton("CONFIGURE", SMALLFONT, 75, 50);
+        configureButton.addActionListener(stateListener);
+
+        buttonPanel.add(homeButton);
+        buttonPanel.add(departmentButton);
+        buttonPanel.add(configureButton);
+
+
+        //Creating Panel holder for document logs of devices.
+        JPanel deviceDataPanel = new JPanel();
+        deviceDataPanel.setLayout(new GridLayout(2, 2));
+
+        //Creating Document logs for computers.
+        String[][] computerData = new String[computers.size()][];
+        for (int i = 0; i < computers.size(); i++) {
+            Computer computer = computers.get(i);
+            computerData[i] = new String[]{computer.getId(), computer.getCondition(), computer.getDepartment()};
+        }
+        String[] computerColumnName = {"Computer ID", "Computer Condition", "Current Location"};
+        DefaultTableModel computerModel = new DefaultTableModel(computerData, computerColumnName);
+        JTable computerTable = new JTable(computerModel);
+        JScrollPane computerScrollPane = new JScrollPane(computerTable);
+        computerScrollPane.setPreferredSize(new Dimension(550, 75));
+        computerScrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        //Creating Document logs for keyboards.
+        String[][] keyboardData = new String[keyboards.size()][];
+        for (int i = 0; i < keyboards.size(); i++) {
+            Keyboard keyboard = keyboards.get(i);
+            keyboardData[i] = new String[]{keyboard.getId(), keyboard.getCondition(), keyboard.getDepartment()};
+        }
+        String[] keyboardColumnName = {"Keyboard ID", "Keyboard Condition", "Current Location"};
+        DefaultTableModel keyboardModel = new DefaultTableModel(keyboardData, keyboardColumnName);
+        JTable keyboardTable = new JTable(keyboardModel);
+        JScrollPane keyboardScrollPane = new JScrollPane(keyboardTable);
+        keyboardScrollPane.setPreferredSize(new Dimension(550, 75));
+        keyboardScrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        //Creating Document logs for monitors.
+        String[][] monitorData = new String[monitors.size()][];
+        for (int i = 0; i < monitors.size(); i++) {
+            Monitor monitor = monitors.get(i);
+            monitorData[i] = new String[]{monitor.getId(), monitor.getCondition(), monitor.getDepartment()};
+        }
+        String[] monitorColumnName = {"Monitor ID", "Monitor Condition", "Current Location"};
+        DefaultTableModel monitorModel = new DefaultTableModel(monitorData, monitorColumnName);
+        JTable monitorTable = new JTable(monitorModel);
+        JScrollPane monitorScrollPane = new JScrollPane(monitorTable);
+        monitorScrollPane.setPreferredSize(new Dimension(550, 75));
+        monitorScrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        //Creating Document logs for mouses.
+        String[][] mouseData = new String[mouses.size()][];
+        for (int i = 0; i < mouses.size(); i++) {
+            Mouse mouse = mouses.get(i);
+            mouseData[i] = new String[]{mouse.getId(), mouse.getCondition(), mouse.getDepartment()};
+        }
+        String[] mouseColumnName = {"Mouse ID", "Mouse Condition", "Current Location"};
+        DefaultTableModel mouseModel = new DefaultTableModel(mouseData, mouseColumnName);
+        JTable mouseTable = new JTable(mouseModel);
+        JScrollPane mouseScrollPane = new JScrollPane(mouseTable);
+        mouseScrollPane.setPreferredSize(new Dimension(550, 75));
+        mouseScrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        deviceDataPanel.add(computerScrollPane);
+        deviceDataPanel.add(keyboardScrollPane);
+        deviceDataPanel.add(monitorScrollPane);
+        deviceDataPanel.add(mouseScrollPane);
+
+
+        JPanel deviceStatusPanel = new JPanel();
+        deviceStatusPanel.setPreferredSize(new Dimension(480, 880));
+        deviceStatusPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        ArrayList<Device> devices = new ArrayList<>();
+        devices.addAll(computers);
+        devices.addAll(keyboards);
+        devices.addAll(monitors);
+        devices.addAll(mouses);
+        devices.removeIf(device -> device.getComplexity() == 0);
+        devices.sort(Comparator.comparingInt(Device::getComplexity).reversed());
+
+        for (int i = 0; i < devices.size(); i++) {
+            JLabel deviceLabel = new JLabel(devices.get(i).toString());
+            deviceStatusPanel.add(deviceLabel);
+        }
+
+        devicesPanel.add(buttonPanel, BorderLayout.NORTH);
+        devicesPanel.add(deviceDataPanel, BorderLayout.CENTER);
+        devicesPanel.add(deviceStatusPanel, BorderLayout.WEST);
+    }
+
+    public void createConfigurationPanel() {
+        configurationPanel = new JPanel();
+        configurationPanel.setLayout(new BorderLayout());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(1, 3));
+        buttonPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        JButton homeButton = createJButton("HOME", SMALLFONT, 530, 50);
+        homeButton.addActionListener(stateListener);
+        JButton departmentButton = createJButton("DEPARTMENTS", SMALLFONT, 530, 50);
+        departmentButton.addActionListener(stateListener);
+        JButton devicesButton = createJButton("DEVICES", SMALLFONT, 530, 50);
+        devicesButton.addActionListener(stateListener);
+
+        buttonPanel.add(homeButton);
+        buttonPanel.add(departmentButton);
+        buttonPanel.add(devicesButton);
+
+
+        JPanel questionPanel = new JPanel();
+        questionPanel.setPreferredSize(new Dimension(1080, 380));
+        questionPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 150, 150));
+        JLabel questionLabel = new JLabel("Which document would you like to add information to?");
+        questionLabel.setFont(new Font("Times New Roman", Font.PLAIN, 55));
+        questionPanel.add(questionLabel);
+
+
+        JPanel buttonPanel2 = new JPanel();
+        buttonPanel2.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
+        JButton addDepartmentButton = createJButton("ADD DEPARTMENT", SMALLFONT, 500, 100);
+        addDepartmentButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        addDepartmentButton.addActionListener(addInformationListener);
+        JButton addDeviceButton = createJButton("ADD DEVICE", SMALLFONT, 500, 100);
+        addDeviceButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        addDeviceButton.addActionListener(addInformationListener);
+        buttonPanel2.add(addDepartmentButton);
+        buttonPanel2.add(addDeviceButton);
+
+        configurationPanel.add(buttonPanel, BorderLayout.NORTH);
+        configurationPanel.add(questionPanel, BorderLayout.CENTER);
+        configurationPanel.add(buttonPanel2, BorderLayout.SOUTH);
+    }
+
+    private class StateListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String actionCommand = e.getActionCommand();
+
+            if (actionCommand.equals("START")) {
+                currentState = SoftwareState.HOME;
+            }
+            if (actionCommand.equals("HOME")) {
+                currentState = SoftwareState.HOME;
+            }
+            if (actionCommand.equals("DEPARTMENTS")) {
+                currentState = SoftwareState.DEPARTMENTS;
+            }
+            if (actionCommand.equals("DEVICES")) {
+                currentState = SoftwareState.DEVICES;
+            }
+            if (actionCommand.equals("CONFIGURE")) {
+                currentState = SoftwareState.CONFIGURATION;
+            }
+            startSoftware();
+        }
+    }
+
+    private class AddInformationListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String actionCommand = e.getActionCommand();
+
+            if (actionCommand.equals("ADD DEPARTMENT")) {
+                String id = JOptionPane.showInputDialog("Enter Department Title: ");
+                String description = JOptionPane.showInputDialog("Enter Department Description: ");
+
+                departments.add(new Department(id, description));
+                createDepartmentPanel();
+            }
+            if (actionCommand.equals("ADD DEVICE")) {
+                String option = JOptionPane.showInputDialog("Enter which device you would like to add to: ");
+
+                if (option.equalsIgnoreCase("computer") || option.equalsIgnoreCase("computers")) {
+                    String id = JOptionPane.showInputDialog("Enter Computer ID: ");
+                    String condition = JOptionPane.showInputDialog("Enter Computer Condition: ");
+                    String department = JOptionPane.showInputDialog("Enter Computer Location (In Terms of Departments): ");
+                    int complexity = Integer.parseInt(JOptionPane.showInputDialog("Enter Repair Difficulty (1 to 5): "));
+
+                    computers.add(new Computer(id, condition, department, complexity));
+                } else if (option.equalsIgnoreCase("keyboard") || option.equalsIgnoreCase("keyboards")) {
+                    String id = JOptionPane.showInputDialog("Enter Keyboard ID: ");
+                    String condition = JOptionPane.showInputDialog("Enter Keyboard Condition: ");
+                    String department = JOptionPane.showInputDialog("Enter Keyboard Location (In Terms of Departments): ");
+                    int complexity = Integer.parseInt(JOptionPane.showInputDialog("Enter Repair Difficulty (1 to 5): "));
+
+                    keyboards.add(new Keyboard(id, condition, department, complexity));
+                } else if (option.equalsIgnoreCase("monitor") || option.equalsIgnoreCase("monitors")) {
+                    String id = JOptionPane.showInputDialog("Enter Monitor ID: ");
+                    String condition = JOptionPane.showInputDialog("Enter Monitor Condition: ");
+                    String department = JOptionPane.showInputDialog("Enter Monitor Location (In Terms of Departments): ");
+                    int complexity = Integer.parseInt(JOptionPane.showInputDialog("Enter Repair Difficulty (1 to 5): "));
+
+                    monitors.add(new Monitor(id, condition, department, complexity));
+                } else if (option.equalsIgnoreCase("mouse") || option.equalsIgnoreCase("mouses")) {
+                    String id = JOptionPane.showInputDialog("Enter Mouse ID: ");
+                    String condition = JOptionPane.showInputDialog("Enter Mouse Condition: ");
+                    String department = JOptionPane.showInputDialog("Enter Mouse Location (In Terms of Departments): ");
+                    int complexity = Integer.parseInt(JOptionPane.showInputDialog("Enter Repair Difficulty (0 to 5): "));
+
+                    mouses.add(new Mouse(id, condition, department, complexity));
+                } else {
+                    JOptionPane.showMessageDialog(null, "Selected Device Doesn't Exist.");
+                }
+                createDevicesPanel();
+            }
+        }
+    }
+
+    private class ExitListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String actionCommand = e.getActionCommand();
+
+            if (actionCommand.equals("EXIT")) {
+
+                removeAll();
+
+                JPanel panel = new JPanel();
+                panel.setSize(1580, 880);
+                panel.setLayout(new BorderLayout());
+
+                JPanel labelPanel = new JPanel();
+                labelPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 150, 150));
+                JLabel label = new JLabel("Are you sure you wish to exit?");
+                label.setFont(MEDIUMFONT);
+                labelPanel.add(label);
+
+                JPanel buttonPanel = new JPanel();
+                buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 25));
+
+                JButton yesButton = createJButton("YES", SMALLFONT, 250, 100);
+                yesButton.addActionListener(exitListener);
+
+                JButton noButton = createJButton("NO", SMALLFONT, 250, 100);
+                noButton.addActionListener(exitListener);
+
+                buttonPanel.add(yesButton);
+                buttonPanel.add(noButton);
+
+                panel.add(labelPanel, BorderLayout.CENTER);
+                panel.add(buttonPanel, BorderLayout.SOUTH);
+
+                add(panel);
+                revalidate();
+                repaint();
+            }
+            if (actionCommand.equals("YES")) {
+                System.exit(0);
+            }
+            if (actionCommand.equals("NO")) {
+                startSoftware();
+            }
+        }
+    }
+
+    private ArrayList<Department> initializeDefaultDepartments() {
+        ArrayList<Department> departments = new ArrayList<>();
+        departments.add(new Department("Emergency Department", "Provides immediate medical care to patients with acute illnesses or injuries."));
+        departments.add(new Department("Intensive Care Unit", "Offers specialized care to critically ill patients who require close monitoring and advanced medical intervention."));
+        departments.add(new Department("Medical/Surgical Unit", "Provides care to patients with various medical conditions or those recovering from surgery."));
+        departments.add(new Department("Labor & Delivery", "Manages childbirth, including labor, delivery, and postpartum care for both mothers and newborns."));
+        departments.add(new Department("Pediatrics Department", "Focuses on the healthcare needs of infants, children, and adolescents."));
+        departments.add(new Department("Radiology Department", "Performs medical imaging procedures such as X-rays, MRI scans, CT scans, and ultrasounds to aid in diagnosis and treatment."));
+        departments.add(new Department("Laboratory Services", "Conducts diagnostic tests on patient samples(blood, urine, etc.) to assist in disease detection, monitoring, and treatment."));
+        departments.add(new Department("Operating Room", "Where surgical procedures are performed by surgeons and surgical teams."));
+        departments.add(new Department("Physical Therapy/Rehabilitation Department", "Helps patients recover physical function and mobility after illness, injury, or surgery through exercises and therapies."));
+        departments.add(new Department("Nutrition Services", "Provides dietary assessment, counseling, and meal planning for patients to support their health and recovery."));
+        departments.add(new Department("Patient Services/Administration", "Oversees various aspects of patient care, including admissions, discharge planning, and hospital administration."));
+        departments.add(new Department("Storage", "Stores technology, including computers, keyboards, monitors, mouses, etc."));
+
+        return departments;
+    }
+
+    private ArrayList<Computer> initializeDefaultComputers() {
+        ArrayList<Computer> computers = new ArrayList<>();
+        computers.add(new Computer("F35ZJ", "Performing Properly", "Emergency Department", 0));
+        computers.add(new Computer("F36XK", "Performing Properly", "Patient Services/Administration", 0));
+        computers.add(new Computer("F37CL", "Performing Properly", "Labor & Delivery", 0));
+        computers.add(new Computer("F38VP", "Not Turning On", "Medical/Surgical Unit", 4));
+        computers.add(new Computer("F39BU", "Performing Properly", "Storage", 0));
+        computers.add(new Computer("F40NY", "Error Code 394M", "Nutrition Services", 3));
+        computers.add(new Computer("F41ME", "Performing Properly", "Operating Room", 0));
+        computers.add(new Computer("F42JQ", "Performing Properly", "Intensive Care Unit", 0));
+        computers.add(new Computer("F43KY", "Performing Properly", "Storage", 0));
+
+        return computers;
+    }
+
+    private ArrayList<Keyboard> initializeDefaultKeyboards() {
+        ArrayList<Keyboard> keyboards = new ArrayList<>();
+        keyboards.add(new Keyboard("K12DY", "Missing K Key.", "Storage", 1));
+        keyboards.add(new Keyboard("K13JU", "Power Problem", "Emergency Department", 2));
+        keyboards.add(new Keyboard("K14UQ", "Functioning Properly", "Radiology Department", 0));
+        keyboards.add(new Keyboard("K15WO", "Functioning Properly", "Intensive Care Unit", 0));
+        keyboards.add(new Keyboard("K16NI", "Functioning Properly", "Pediatrics Department", 0));
+        keyboards.add(new Keyboard("K17QP", "Functioning Properly", "Nutrition Services", 0));
+
+        return keyboards;
+    }
+
+    private ArrayList<Monitor> initializeDefaultMonitors() {
+        ArrayList<Monitor> monitors = new ArrayList<>();
+        monitors.add(new Monitor("M22WL", "Functioning Properly", "Operating Room", 0));
+        monitors.add(new Monitor("M23FY", "Displays Strange Lines", "Nutrition Services", 4));
+        monitors.add(new Monitor("M24SY", "Functioning Properly", "Physical Therapy/Rehabilitation Department", 0));
+        monitors.add(new Monitor("M24WJ", "Functioning Properly", "Storage", 0));
+        monitors.add(new Monitor("M25IH", "Functioning Properly", "Radiology Department", 0));
+        monitors.add(new Monitor("M26GI", "Functioning Properly", "Emergency Department", 0));
+        monitors.add(new Monitor("M27NI", "Functioning properly", "Intensive Care Unit", 0));
+        monitors.add(new Monitor("M28LP", "Isn't Turning On", "Pediatrics Department", 3));
+        monitors.add(new Monitor("M29OJ", "Functioning Properly", "Storage", 0));
+
+        return monitors;
+    }
+
+    private ArrayList<Mouse> initializeDefaultMouses() {
+        ArrayList<Mouse> mouses = new ArrayList<>();
+        mouses.add(new Mouse("M53DB", "Functioning Properly", "Emergency Department", 0));
+        mouses.add(new Mouse("M54YB", "Clicker Isn't Appearing on Screen", "Radiology Department", 2));
+
+        return mouses;
+    }
+
+    private static JButton createJButton(String labelText, Font font, int width, int height) {
+        JButton button = new JButton(labelText);
+        button.setActionCommand(labelText);
+        button.setFont(font);
+        button.setPreferredSize(new Dimension(width, height));
+        button.setFocusPainted(false);
+        return button;
+    }
+}
